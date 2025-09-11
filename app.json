@@ -20,6 +20,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "xyz.snry.tachyon.mail",
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",

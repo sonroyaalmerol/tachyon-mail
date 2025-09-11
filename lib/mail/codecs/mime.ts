@@ -67,7 +67,7 @@ export function decodeBody(
 }
 
 export function ascii(bytes: Uint8Array): string {
-  return new TextDecoder("ascii", { fatal: false }).decode(bytes);
+  return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
 }
 
 // very light address parser (common cases)

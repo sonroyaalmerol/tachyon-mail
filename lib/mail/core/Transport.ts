@@ -9,7 +9,6 @@ export interface Transport {
   write(data: Uint8Array): Promise<void>;
   read(): Promise<Uint8Array | null>; // null = closed
   close(): Promise<void>;
-  // Optional: hint that reads should resolve as lines
   setReadMode?(mode: "raw" | "line"): void;
   isConnected(): boolean;
 }
@@ -53,7 +52,8 @@ export class LineReader {
   }
 
   private decodeAscii(arr: Uint8Array): string {
-    return new TextDecoder("ascii", { fatal: false }).decode(arr);
+    // Some RN engines don’t accept "ascii". Use utf-8 safely (IMAP lines are ASCII).
+    return new TextDecoder("utf-8", { fatal: false }).decode(arr);
   }
 }
 

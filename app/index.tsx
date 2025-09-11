@@ -37,16 +37,13 @@ class RnTlsTransport implements Transport {
     startTLS?: boolean;
     alpnProtocols?: string[];
   }): Promise<void> {
-    // For implicit TLS (IMAPS 993), TcpSocket.createConnection supports tls: true.
-    // startTLS upgrade mid-connection is not directly supported by this lib.
-    // For STARTTLS, prefer a gateway or a module that supports TLS upgrade.
     return new Promise((resolve, reject) => {
       try {
         this.socket = TcpSocket.createConnection(
           {
             host: params.host,
             port: params.port,
-            tls: params.secure === true, // implicit TLS only
+            tls: params.secure === true,
           },
           () => {
             this.connected = true;
@@ -55,18 +52,11 @@ class RnTlsTransport implements Transport {
         );
 
         this.socket.on('data', (data: any) => {
-          // data is ArrayBuffer or Buffer-like
-          const chunk =
-            data instanceof Uint8Array
-              ? data
-              : new Uint8Array(
-                data.buffer || data, data.byteOffset || 0, data.length
-              );
+          const chunk = toU8(data);
           if (this.readQueue.length) {
             const fn = this.readQueue.shift()!;
             fn(chunk);
           } else {
-            // accumulate until someone reads
             const merged = new Uint8Array(this.buffer.length + chunk.length);
             merged.set(this.buffer, 0);
             merged.set(chunk, this.buffer.length);
@@ -76,7 +66,6 @@ class RnTlsTransport implements Transport {
 
         this.socket.on('error', (err: any) => {
           if (!this.connected) reject(err);
-          // Wake readers with null to indicate close/error
           while (this.readQueue.length) this.readQueue.shift()!(null);
         });
 
@@ -93,10 +82,24 @@ class RnTlsTransport implements Transport {
   async write(data: Uint8Array): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.socket) return reject(new Error('socket not connected'));
-      this.socket.write(Buffer.from(data), (err: any) => {
-        if (err) reject(err);
-        else resolve();
-      });
+      // For write, react-native-tcp-socket expects a string or Buffer.
+      // Use base64 or Buffer if available; Buffer is usually present.
+      // Prefer Buffer to avoid encoding overhead.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const g: any = globalThis as any;
+      if (g.Buffer) {
+        this.socket.write(g.Buffer.from(data), (err: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      } else {
+        // Fallback: send as base64 string
+        const b64 = u8ToBase64(data);
+        this.socket.write(b64, 'base64', (err: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      }
     });
   }
 
@@ -124,6 +127,77 @@ class RnTlsTransport implements Transport {
   isConnected(): boolean {
     return this.connected;
   }
+}
+
+// Helpers to normalize incoming data
+function toU8(data: any): Uint8Array {
+  // If it's already Uint8Array
+  if (data instanceof Uint8Array) return data;
+
+  // If it's ArrayBuffer
+  if (typeof ArrayBuffer !== 'undefined' && data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+
+  // Some RN environments provide an object with .toArrayBuffer()
+  if (data && typeof data.toArrayBuffer === 'function') {
+    const ab = data.toArrayBuffer();
+    return new Uint8Array(ab);
+  }
+
+  // Node Buffer (common on Android RN due to polyfill)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g: any = globalThis as any;
+  if (g.Buffer && g.Buffer.isBuffer?.(data)) {
+    // data.buffer may exist but slice is safer to avoid offset issues
+    return new Uint8Array(data);
+  }
+
+  // If it's a typed array view (e.g., { buffer: ArrayBuffer, byteOffset, length })
+  if (data && data.buffer instanceof ArrayBuffer && typeof data.length === 'number') {
+    try {
+      return new Uint8Array(data.buffer, data.byteOffset || 0, data.length);
+    } catch {
+      // fall through
+    }
+  }
+
+  // Last resort: if it's a string, assume base64 or utf-8 (rare for 'data' event)
+  if (typeof data === 'string') {
+    try {
+      return base64ToU8(data);
+    } catch {
+      return new TextEncoder().encode(data);
+    }
+  }
+
+  // Unknown form: return empty to avoid crashing
+  return new Uint8Array(0);
+}
+
+function u8ToBase64(u8: Uint8Array): string {
+  // Prefer btoa route
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g: any = globalThis as any;
+  if (typeof btoa !== 'undefined') return btoa(s);
+  if (g.Buffer) return g.Buffer.from(u8).toString('base64');
+  // minimal fallback (rarely used)
+  return s;
+}
+
+function base64ToU8(b64: string): Uint8Array {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g: any = globalThis as any;
+  if (typeof atob !== 'undefined') {
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  if (g.Buffer) return new Uint8Array(g.Buffer.from(b64, 'base64'));
+  return new Uint8Array(0);
 }
 
 // ===== End additions =====
@@ -165,10 +239,10 @@ export default function Screen() {
     setStatus('Connecting…');
 
     // TODO: replace these with your server and user credentials.
-    const IMAP_HOST = 'imap.example.com';
-    const IMAP_PORT = 993; // 993 for implicit TLS, 143 for plain/STARTTLS
-    const USERNAME = 'user@example.com';
-    const PASSWORD = 'your-password';
+    const IMAP_HOST = '';
+    const IMAP_PORT = 143; // 993 for implicit TLS, 143 for plain/STARTTLS
+    const USERNAME = '';
+    const PASSWORD = '';
 
     // Choose LOGIN or PLAIN:
     const usePlain = false; // set true to use PLAIN instead of LOGIN
@@ -177,7 +251,7 @@ export default function Screen() {
     const imap = new ImapClient(transport, {
       host: IMAP_HOST,
       port: IMAP_PORT,
-      secure: IMAP_PORT === 993, // implicit TLS if 993
+      secure: true,
       // startTLS: true, // only if using 143 and your transport supports upgrade
       auth: usePlain
         ? { mechanism: 'PLAIN', username: USERNAME, password: PASSWORD }
@@ -210,8 +284,8 @@ export default function Screen() {
     setBusy(true);
     setStatus("CalDAV: Auto-discovering…");
 
-    const AUTH = { type: "basic" as const, username: "user", password: "pass" };
-    const ORIGIN = "https://dav.example.com"; // domain only; no path
+    const AUTH = { type: "basic" as const, username: "", password: "" };
+    const ORIGIN = ""; // domain only; no path
 
     try {
       const disco = await autoDiscoverDav({ origin: ORIGIN, auth: AUTH });
