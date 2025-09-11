@@ -1,73 +1,88 @@
-# Minimal Template
+# Tachyon Mail
 
-This is a [React Native](https://reactnative.dev/) project built with [Expo](https://expo.dev/) and [React Native Reusables](https://reactnativereusables.com).
+Tachyon Mail is a modern, privacy‑respecting IMAP email client targeting iOS, Android, and the Web (via React Native Web). It aims to deliver a fast, streamlined, and robust experience for triage, reading, composing, and searching email using standard IMAP/SMTP backends.
 
-It was initialized using the following command:
+Status: Not available yet. Tachyon Mail is under heavy development. APIs, features, and UI are actively changing. Do not use in production.
 
-```bash
-npx react-native-reusables/cli@latest init -t tachyon-mail
-```
+## About
 
-## Getting Started
+- Cross‑platform: iOS, Android, and Web
+- Standards‑based: IMAP/SMTP for mail; optional CalDAV/CardDAV integrations
+- Security‑first: TLS by default, XOAUTH2 support, minimal permissions
+- Performance‑oriented: efficient header fetching, on‑demand bodies, short‑lived connections for web constraints
+- Minimal dependencies: tight control of transports, parsers, and memory usage
 
-To run the development server:
+This project is built with:
+- Expo + React Native
+- Expo Router for navigation
+- NativeWind + Tailwind for styling
+- React Native Reusables for UI primitives
 
-```bash
-    npm run dev
-    # or
-    yarn dev
-    # or
-    pnpm dev
-    # or
-    bun dev
-```
+## Getting Started (Development)
 
-This will start the Expo Dev Server. Open the app in:
-
-- **iOS**: press `i` to launch in the iOS simulator _(Mac only)_
-- **Android**: press `a` to launch in the Android emulator
-- **Web**: press `w` to run in a browser
-
-You can also scan the QR code using the [Expo Go](https://expo.dev/go) app on your device. This project fully supports running in Expo Go for quick testing on physical devices.
-
-## Adding components
-
-You can add more reusable components using the CLI:
+Run the dev server:
 
 ```bash
-npx react-native-reusables/cli@latest add [...components]
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-> e.g. `npx react-native-reusables/cli@latest add input textarea`
+This starts the Expo Dev Server. You can open the app in:
+- iOS Simulator: press i (macOS only)
+- Android Emulator: press a
+- Web: press w
 
-If you don't specify any component names, you'll be prompted to select which components to add interactively. Use the `--all` flag to install all available components at once.
+You can also scan the QR code with the Expo Go app to run on a physical device.
 
-## Project Features
+Note: For Web builds that directly connect to IMAP/SMTP or DAV endpoints, ensure your backend or proxy provides appropriate CORS headers. Mobile (native) builds are not subject to browser CORS.
 
-- ⚛️ Built with [Expo Router](https://expo.dev/router)
-- 🎨 Styled with [Tailwind CSS](https://tailwindcss.com/) via [Nativewind](https://www.nativewind.dev/)
-- 📦 UI powered by [React Native Reusables](https://github.com/founded-labs/react-native-reusables)
-- 🚀 New Architecture enabled
-- 🔥 Edge to Edge enabled
-- 📱 Runs on iOS, Android, and Web
+## Development Focus
 
-## Learn More
+- Mail core
+  - IMAP client with PLAIN/LOGIN/XOAUTH2 authentication
+  - SMTP client for sending, with implicit TLS or STARTTLS
+  - Efficient fetches (batched header queries, partial body fetches, IDLE where appropriate)
+- Optional DAV
+  - CalDAV/CardDAV clients via HTTP(S) fetch
+  - Auto‑discovery for well‑known endpoints and home sets
+- Transport Abstraction
+  - Native TLS socket on iOS/Android
+  - WebSocket gateway for IMAP/SMTP on Web
+  - Direct fetch for DAV on all platforms
+- Memory + Performance
+  - Cap previews with byte limits
+  - Avoid large in‑memory MIME or mailbox trees
+  - Conditional requests with ETags/sync tokens for DAV
 
-To dive deeper into the technologies used:
+## Roadmap (Subject to Change)
 
-- [React Native Docs](https://reactnative.dev/docs/getting-started)
-- [Expo Docs](https://docs.expo.dev/)
-- [Nativewind Docs](https://www.nativewind.dev/)
-- [React Native Reusables](https://reactnativereusables.com)
+- Core mail: search, labels/folders, flagging, threading, drafts
+- Composer: rich text, attachments, inline images
+- Caching: local envelope/body cache with background refresh
+- Push/idle strategies per platform
+- Advanced auth: token refresh hooks, account management
+- CalDAV/CardDAV: opt‑in sync and quick summaries
+- Accessibility, localization, theming
 
-## Deploy with EAS
+## Contributing
 
-The easiest way to deploy your app is with [Expo Application Services (EAS)](https://expo.dev/eas).
+At this time the project is evolving rapidly. If you’re interested in contributing (testing transports, gateways, or providers), open an issue or PR with clear context. Please note breaking changes are expected until an initial beta.
 
-- [EAS Build](https://docs.expo.dev/build/introduction/)
-- [EAS Updates](https://docs.expo.dev/eas-update/introduction/)
-- [EAS Submit](https://docs.expo.dev/submit/introduction/)
+## Security
+
+- Uses TLS transports by default
+- XOAUTH2 tokens supported; credentials are never logged
+- For Web, configure a same‑origin reverse proxy or proper CORS on your IMAP/SMTP gateways and DAV endpoints
+
+## License
+
+TBD (will be added before public preview).
 
 ---
 
-If you enjoy using React Native Reusables, please consider giving it a ⭐ on [GitHub](https://github.com/founded-labs/react-native-reusables). Your support means a lot!
+Tachyon Mail is not released yet. Follow this repository for updates as we progress toward an initial preview.
