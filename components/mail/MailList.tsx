@@ -9,7 +9,7 @@ export function MailList({
   onSelectEmailAction,
 }: {
   emails: EmailItem[]
-  onSelectEmailAction: (id: number) => void
+  onSelectEmailAction: (id: string) => void
 }) {
   return (
     <>

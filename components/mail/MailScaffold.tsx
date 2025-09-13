@@ -5,23 +5,30 @@ import { Input } from "@/components/ui/input"
 import { Menu, Search } from "lucide-react"
 import { MailList } from "@/components/mail/MailList"
 import { EmailItem } from "@/lib/mail/types"
-import { useState } from "react"
 import { MailDetail } from "./MailDetail"
 import { useShell } from "../common/ShellContext"
+import { redirect } from "next/navigation"
+import { View } from "../common/AppShell"
 
 export function MailScaffold({
   title,
   emails,
   showSearch = true,
+  selectedEmailId = "",
+  category,
 }: {
   title: string
   emails: EmailItem[]
   showSearch?: boolean
+  selectedEmailId?: string
+  category: View
 }) {
   const { openSidebar: onOpenSidebarAction } = useShell()
-
-  const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null)
   const selectedEmail = emails.find((e) => e.id === selectedEmailId) as EmailItem | undefined
+
+  const selectEmailId = (id: string) => {
+    redirect(`/mail/${category}/${id}`)
+  }
 
   return (
     <>
@@ -49,12 +56,12 @@ export function MailScaffold({
       {selectedEmail && selectedEmailId ? (
         <MailDetail
           email={selectedEmail}
-          onBackAction={() => setSelectedEmailId(null)}
+          onBackAction={() => redirect(`/mail/${category}`)}
         />
       ) : (
         <MailList
           emails={emails}
-          onSelectEmailAction={setSelectedEmailId}
+          onSelectEmailAction={selectEmailId}
         />
       )}
     </>

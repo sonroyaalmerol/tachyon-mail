@@ -32,7 +32,6 @@ export function Sidebar({
   isMobileOpen: boolean
   setMobileOpenAction: (v: boolean) => void
 }) {
-  console.log(activeView)
   const items: SidebarItem[] = useMemo(
     () => [
       { icon: Inbox, label: "Inbox", count: 12, active: activeView === "inbox", view: "inbox" },

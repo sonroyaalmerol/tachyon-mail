@@ -4,13 +4,19 @@ import { MailScaffold } from "@/components/mail/MailScaffold"
 import { emails as seedEmails } from "@/lib/mail/data"
 import { AppShell } from "@/components/common/AppShell"
 
-export function DraftsSection() {
+export function SentSection({
+  selectedEmailId = "",
+}: {
+  selectedEmailId?: string
+}) {
   return (
-    <AppShell view="drafts">
+    <AppShell view="sent">
       <MailScaffold
-        title="Drafts"
+        title="Sent"
+        category="sent"
         emails={seedEmails}
         showSearch={true}
+        selectedEmailId={selectedEmailId}
       />
     </AppShell>
   )

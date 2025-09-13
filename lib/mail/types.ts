@@ -1,5 +1,5 @@
 export interface EmailItem {
-  id: number
+  id: string
   sender: string
   senderEmail: string
   subject: string

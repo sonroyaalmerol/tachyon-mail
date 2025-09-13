@@ -2,7 +2,7 @@ import { EmailItem } from "./types"
 
 export const emails: EmailItem[] = [
   {
-    id: 1,
+    id: "1",
     sender: "John Doe",
     senderEmail: "john.doe@company.com",
     subject: "Project Update - Q4 Planning",
@@ -34,7 +34,7 @@ Project Manager`,
     starred: false,
   },
   {
-    id: 2,
+    id: "2",
     sender: "Sarah Wilson",
     senderEmail: "sarah.wilson@company.com",
     subject: "Meeting Notes from Today's Call",
@@ -66,7 +66,7 @@ Marketing Director`,
     starred: true,
   },
   {
-    id: 3,
+    id: "3",
     sender: "Marketing Team",
     senderEmail: "marketing@company.com",
     subject: "New Campaign Launch Results",
@@ -97,7 +97,7 @@ Marketing Team`,
     starred: false,
   },
   {
-    id: 4,
+    id: "4",
     sender: "IT Support",
     senderEmail: "support@company.com",
     subject: "System Maintenance Scheduled",
