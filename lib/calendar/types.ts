@@ -3,6 +3,7 @@ export interface CalendarEvent {
   title: string
   date: number
   time: string
+  isAllDay: boolean
   description?: string
   color: string
 }

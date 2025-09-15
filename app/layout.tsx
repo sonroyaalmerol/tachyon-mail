@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Suspense } from "react"
 import "./globals.css"
+import { TRPCProvider } from "@/trpc/react"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,7 +24,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
         <Suspense fallback={<div>Loading...</div>}>
-          <div className="min-h-screen bg-background text-foreground">{children}</div>
+          <TRPCProvider>
+            <div className="min-h-screen bg-background text-foreground">{children}</div>
+          </TRPCProvider>
         </Suspense>
       </body>
     </html>
